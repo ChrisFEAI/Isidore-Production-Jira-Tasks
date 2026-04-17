@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Isidore Production – Create Jira Task</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      background: #0d0d2b;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      font-family: 'Roboto', system-ui, sans-serif;
+      color: #fff;
+    }
+
+    /* ── Logo ── */
+    .logo-wrap {
+      margin-bottom: 24px;
+      background: #13132e;
+      border: 1px solid #574b7c;
+      border-radius: 6px;
+      padding: 10px 28px;
+      display: inline-block;
+    }
+    .logo-wrap span { font-weight: 700; font-size: 20px; letter-spacing: 6px; text-transform: uppercase; }
+    .logo-forward { color: #8275b1; }
+    .logo-edge    { color: #ffffff; }
+
+    /* ── Card ── */
+    .card {
+      background: #13132e;
+      border-radius: 14px;
+      width: 100%;
+      max-width: 560px;
+      box-shadow: 0 24px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(87,75,124,0.25);
+      overflow: hidden;
+    }
+
+    .card-header {
+      background: linear-gradient(135deg, #574b7c 0%, rgba(130,117,177,0.85) 100%);
+      padding: 20px 26px;
+    }
+    .card-header h1 { font-size: 17px; font-weight: 700; letter-spacing: 0.5px; }
+    .card-header p  { font-size: 12px; color: rgba(255,255,255,0.65); margin-top: 3px; letter-spacing: 0.3px; }
+
+    .card-body { padding: 26px; }
+
+    /* ── Form fields ── */
+    .field { display: flex; flex-direction: column; gap: 5px; }
+    .field label {
+      font-size: 11px; font-weight: 600; color: #8275b1;
+      text-transform: uppercase; letter-spacing: 0.8px;
+    }
+    .field input, .field select, .field textarea {
+      padding: 10px 12px;
+      border: 1.5px solid rgba(87,75,124,0.4);
+      border-radius: 8px;
+      font-size: 14px;
+      color: #fff;
+      background: #0a0a22;
+      font-family: 'Roboto', system-ui, sans-serif;
+      outline: none;
+      transition: border-color 0.2s;
+      width: 100%;
+    }
+    .field input:focus, .field select:focus, .field textarea:focus {
+      border-color: #8275b1;
+    }
+    .field textarea { resize: vertical; }
+    .field select option { background: #13132e; }
+    input[type="date"] { color-scheme: dark; }
+
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .form-stack { display: flex; flex-direction: column; gap: 16px; }
+
+    /* ── Team badge ── */
+    .team-badge {
+      display: flex; align-items: center; gap: 8px;
+      background: rgba(87,75,124,0.2);
+      border: 1px solid rgba(87,75,124,0.4);
+      border-radius: 8px; padding: 10px 14px;
+    }
+    .team-badge .t-label { font-size: 12px; color: #8275b1; font-weight: 600; letter-spacing: 0.3px; }
+    .team-badge .t-value { font-size: 12px; color: rgba(255,255,255,0.7); margin-left: 4px; }
+    .team-badge .t-pill  {
+      margin-left: auto; font-size: 10px; font-weight: 600;
+      background: rgba(130,117,177,0.2); color: #8275b1;
+      padding: 2px 8px; border-radius: 10px;
+    }
+
+    /* ── Submit button ── */
+    .btn-submit {
+      width: 100%; padding: 14px;
+      background: linear-gradient(90deg, #574b7c, #8275b1);
+      color: #fff; border: none; border-radius: 10px;
+      font-weight: 700; font-size: 15px; letter-spacing: 0.5px;
+      cursor: pointer; font-family: 'Roboto', system-ui, sans-serif;
+      box-shadow: 0 4px 20px rgba(87,75,124,0.5);
+      transition: opacity 0.2s;
+      margin-top: 4px;
+    }
+    .btn-submit:disabled {
+      background: #333; color: #676767;
+      box-shadow: none; cursor: not-allowed;
+    }
+    .btn-submit:not(:disabled):hover { opacity: 0.9; }
+
+    /* ── Spinner ── */
+    .spinner-wrap { text-align: center; padding: 50px 20px; }
+    .spinner {
+      width: 48px; height: 48px;
+      border: 4px solid rgba(87,75,124,0.3);
+      border-top-color: #8275b1;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 20px;
+    }
+    .spinner-wrap h2 { font-size: 17px; color: #fff; }
+    .spinner-wrap p  { font-size: 13px; color: #999; margin-top: 6px; }
+
+    /* ── Success ── */
+    .success-wrap { text-align: center; }
+    .success-icon {
+      width: 56px; height: 56px; border-radius: 50%;
+      background: rgba(130,117,177,0.15);
+      border: 2px solid #8275b1;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 12px; font-size: 24px; color: #8275b1;
+    }
+    .success-wrap h2 { font-size: 19px; font-weight: 800; margin-bottom: 4px; }
+    .result-box {
+      background: rgba(87,75,124,0.2);
+      border: 1px solid rgba(87,75,124,0.4);
+      border-radius: 12px; padding: 16px 18px;
+      margin: 16px 0; text-align: left;
+    }
+    .result-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 7px 0; border-bottom: 1px solid rgba(130,117,177,0.2);
+      font-size: 13px; gap: 12px;
+    }
+    .result-row:last-child { border-bottom: none; }
+    .result-row .r-label { color: #8275b1; font-weight: 500; flex-shrink: 0; }
+    .result-row .r-val   { color: #fff; text-align: right; }
+    .result-row a        { color: #8275b1; font-weight: 700; text-decoration: none; }
+    .result-row .r-due   { color: #8275b1; font-weight: 600; }
+    .btn-again {
+      padding: 12px 30px;
+      background: linear-gradient(90deg, #574b7c, #8275b1);
+      color: #fff; border: none; border-radius: 8px;
+      font-weight: 700; font-size: 14px; letter-spacing: 0.4px;
+      cursor: pointer; font-family: 'Roboto', system-ui, sans-serif;
+      box-shadow: 0 4px 14px rgba(87,75,124,0.5);
+    }
+
+    /* ── Error ── */
+    .error-wrap { text-align: center; padding: 30px 10px; }
+    .error-wrap h2 { font-size: 17px; color: #e05555; margin: 12px 0 6px; }
+    .error-wrap p  { font-size: 13px; color: #999; margin-bottom: 20px; }
+    .btn-retry {
+      padding: 12px 28px; background: #574b7c;
+      color: #fff; border: none; border-radius: 8px;
+      font-weight: 600; cursor: pointer;
+      font-family: 'Roboto', system-ui, sans-serif;
+    }
+
+    /* ── Footer ── */
+    .footer {
+      margin-top: 20px; font-size: 11px;
+      color: #676767; letter-spacing: 1px; text-transform: uppercase;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* hide sections */
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+
+  <!-- ═══════════════════════════════════════════
+       ⚠️  PASTE YOUR ANTHROPIC API KEY BELOW
+  ════════════════════════════════════════════ -->
+  <script>
+    // ⚠️ PASTE YOUR ANTHROPIC API KEY BETWEEN THE QUOTES BELOW
+    const ANTHROPIC_API_KEY = "YOUR_ANTHROPIC_API_KEY_HERE";
+    // ⚠️ DO NOT SHARE THIS FILE PUBLICLY AFTER ADDING YOUR KEY
+  </script>
+  <!-- ══════════════════════════════════════════ -->
+
+  <!-- Logo -->
+  <div class="logo-wrap">
+    <span><span class="logo-forward">FORWARD</span><span class="logo-edge">EDGE</span></span>
+  </div>
+
+  <!-- Card -->
+  <div class="card">
+    <div class="card-header">
+      <h1>Isidore Production</h1>
+      <p>Isidore Main Hub v1.0 · Create Jira Task</p>
+    </div>
+    <div class="card-body">
+
+      <!-- FORM -->
+      <div id="view-form" class="form-stack">
+        <div class="field">
+          <label for="epic">Epic *</label>
+          <select id="epic">
+            <option value="">— Select an epic —</option>
+            <option value="IT-1014">Isidore Deployment</option>
+            <option value="IT-985">Documentation</option>
+            <option value="IT-944">Isidore Video Content Library Development</option>
+            <option value="IT-807">Other Projects/PoC</option>
+            <option value="IT-636">Isidore 50 Monthly Builds 2026</option>
+            <option value="IT-628">Isidore EM Monthly Builds 2026</option>
+            <option value="IT-581">Inventory Management for Isidore 50s</option>
+            <option value="IT-263">Inventory Management for Engineering Models</option>
+            <option value="IT-608">Technical Writing &amp; Documentation</option>
+            <option value="IT-592">Isidore 50 Engineering Model Production</option>
+            <option value="IT-447">Engineering Model Board Production</option>
+            <option value="IT-446">Isidore 50 Board Production</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="title">Task Title *</label>
+          <input id="title" type="text" placeholder="What needs to be done?" />
+        </div>
+
+        <div class="field">
+          <label for="desc">Description</label>
+          <textarea id="desc" rows="3" placeholder="Add context, acceptance criteria, or notes…"></textarea>
+        </div>
+
+        <div class="form-grid">
+          <div class="field">
+            <label for="assignee">Assignee</label>
+            <select id="assignee">
+              <option value="">— Select assignee —</option>
+              <option value="712020:6a961b9e-7491-4ba7-915c-bdf6656c5944">Paola Hernandez Aguirre</option>
+              <option value="712020:04f9c324-2343-4b8d-85e9-116a25c4c922">Johanne Fotso</option>
+              <option value="712020:b754bbd8-c157-46c1-b423-b4a97bc1d404">Elesha Jackson</option>
+              <option value="712020:700aa895-66f1-4bfb-8e62-94caa66ccbf4">Beau Ratterree</option>
+              <option value="712020:f386474d-e1e7-4904-8c61-a646b8af5d8a">David-Michael Ross</option>
+              <option value="712020:b4802ccd-c546-479e-9729-b3c13837f849">Antonio Garcia</option>
+              <option value="712020:8daf43a7-47ea-4da8-bab0-bf682c69acdb">Jose La Torre</option>
+              <option value="712020:8686ed21-fe36-475f-9407-255d041cfa0a">Chris Gemeinhardt</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="due">Due Date *</label>
+            <input id="due" type="date" />
+          </div>
+        </div>
+
+        <div class="team-badge">
+          <span>👥</span>
+          <span class="t-label">Team</span>
+          <span class="t-value">Isidore Production Team</span>
+          <span class="t-pill">AUTO-SET</span>
+        </div>
+
+        <button class="btn-submit" id="btn-submit" onclick="submitTask()">Create Jira Task</button>
+      </div>
+
+      <!-- SUBMITTING -->
+      <div id="view-submitting" class="spinner-wrap hidden">
+        <div class="spinner"></div>
+        <h2>Creating task in Jira…</h2>
+        <p id="submitting-epic"></p>
+      </div>
+
+      <!-- SUCCESS -->
+      <div id="view-success" class="success-wrap hidden">
+        <div class="success-icon">✓</div>
+        <h2>Task Created!</h2>
+        <div class="result-box">
+          <div class="result-row"><span class="r-label">Issue Key</span><a id="r-key" href="#" target="_blank"></a></div>
+          <div class="result-row"><span class="r-label">Epic</span><span class="r-val" id="r-epic"></span></div>
+          <div class="result-row"><span class="r-label">Title</span><span class="r-val" id="r-title"></span></div>
+          <div class="result-row"><span class="r-label">Assignee</span><span class="r-val" id="r-assignee"></span></div>
+          <div class="result-row"><span class="r-label">Due Date</span><span class="r-due" id="r-due"></span></div>
+          <div class="result-row"><span class="r-label">Team</span><span class="r-val" style="color:#8275b1">Isidore Production Team</span></div>
+        </div>
+        <button class="btn-again" onclick="resetForm()">+ Create Another Task</button>
+      </div>
+
+      <!-- ERROR -->
+      <div id="view-error" class="error-wrap hidden">
+        <div style="font-size:50px">❌</div>
+        <h2>Something went wrong</h2>
+        <p id="error-msg"></p>
+        <button class="btn-retry" onclick="resetForm()">Try Again</button>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="footer">ForwardEdge AI · Isidore Production</div>
+
+  <script>
+    const CLOUD_ID   = "4bd3ea12-9316-420c-9425-3114f3fbde06";
+    const MCP_URL    = "https://mcp.atlassian.com/v1/mcp";
+    const PROJECT    = "IT";
+    const TEAM_ID    = "3a5dfe44-fedc-46b7-b005-0d6a3e4fe948";
+
+    const EPIC_NAMES = {
+      "IT-1014": "Isidore Deployment",
+      "IT-985":  "Documentation",
+      "IT-944":  "Isidore Video Content Library Development",
+      "IT-807":  "Other Projects/PoC",
+      "IT-636":  "Isidore 50 Monthly Builds 2026",
+      "IT-628":  "Isidore EM Monthly Builds 2026",
+      "IT-581":  "Inventory Management for Isidore 50s",
+      "IT-263":  "Inventory Management for Engineering Models",
+      "IT-608":  "Technical Writing & Documentation",
+      "IT-592":  "Isidore 50 Engineering Model Production",
+      "IT-447":  "Engineering Model Board Production",
+      "IT-446":  "Isidore 50 Board Production",
+    };
+
+    const ASSIGNEE_NAMES = {
+      "712020:6a961b9e-7491-4ba7-915c-bdf6656c5944": "Paola Hernandez Aguirre",
+      "712020:04f9c324-2343-4b8d-85e9-116a25c4c922": "Johanne Fotso",
+      "712020:b754bbd8-c157-46c1-b423-b4a97bc1d404": "Elesha Jackson",
+      "712020:700aa895-66f1-4bfb-8e62-94caa66ccbf4": "Beau Ratterree",
+      "712020:f386474d-e1e7-4904-8c61-a646b8af5d8a": "David-Michael Ross",
+      "712020:b4802ccd-c546-479e-9729-b3c13837f849": "Antonio Garcia",
+      "712020:8daf43a7-47ea-4da8-bab0-bf682c69acdb": "Jose La Torre",
+      "712020:8686ed21-fe36-475f-9407-255d041cfa0a": "Chris Gemeinhardt",
+    };
+
+    function show(id) {
+      ["view-form","view-submitting","view-success","view-error"]
+        .forEach(v => document.getElementById(v).classList.toggle("hidden", v !== id));
+    }
+
+    function resetForm() {
+      document.getElementById("epic").value     = "";
+      document.getElementById("title").value    = "";
+      document.getElementById("desc").value     = "";
+      document.getElementById("assignee").value = "";
+      document.getElementById("due").value      = "";
+      show("view-form");
+    }
+
+    async function submitTask() {
+      const epicKey    = document.getElementById("epic").value.trim();
+      const title      = document.getElementById("title").value.trim();
+      const desc       = document.getElementById("desc").value.trim();
+      const assigneeId = document.getElementById("assignee").value;
+      const dueDate    = document.getElementById("due").value;
+
+      if (!epicKey || !title || !dueDate) {
+        alert("Please fill in Epic, Task Title, and Due Date.");
+        return;
+      }
+
+      document.getElementById("submitting-epic").textContent =
+        "Linking to " + (EPIC_NAMES[epicKey] || epicKey);
+      show("view-submitting");
+
+      const assigneeLine = assigneeId
+        ? `- Assignee accountId: ${assigneeId}`  : "";
+
+      const prompt = `Create a Jira task in project ${PROJECT} (cloudId: ${CLOUD_ID}) with:
+- Summary: "${title}"
+- Description: "${desc || "No description provided."}"
+- Issue type: Task
+- Parent epic: ${epicKey}
+- Due date: ${dueDate}
+- customfield_10001 (Team): {"id": "${TEAM_ID}"}
+${assigneeLine}
+
+Use createJiraIssue. Set parent to ${epicKey}, duedate to ${dueDate}, and additional_fields to include {"customfield_10001": {"id": "${TEAM_ID}"}}${assigneeId ? ` and assignee accountId to ${assigneeId}` : ""}. Return the issue key.`;
+
+      try {
+        const res = await fetch("https://api.anthropic.com/v1/messages", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-api-key": ANTHROPIC_API_KEY,
+            "anthropic-version": "2023-06-01",
+            "anthropic-beta": "mcp-client-2025-04-04",
+          },
+          body: JSON.stringify({
+            model: "claude-sonnet-4-20250514",
+            max_tokens: 1000,
+            messages: [{ role: "user", content: prompt }],
+            mcp_servers: [{ type: "url", url: MCP_URL, name: "atlassian" }],
+          }),
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error?.message || "API error");
+
+        const textBlocks   = (data.content || []).filter(b => b.type === "text").map(b => b.text).join(" ");
+        const toolResults  = (data.content || []).filter(b => b.type === "mcp_tool_result");
+
+        let issueKey = null;
+        for (const block of toolResults) {
+          try {
+            const p = JSON.parse(block.content?.[0]?.text || "");
+            if (p.key) { issueKey = p.key; break; }
+          } catch {}
+        }
+        if (!issueKey) {
+          const m = textBlocks.match(/([A-Z]+-\d+)/);
+          if (m) issueKey = m[1];
+        }
+
+        // Populate success view
+        if (issueKey) {
+          const link = document.getElementById("r-key");
+          link.textContent = issueKey + " ↗";
+          link.href = `https://forwardedgeai.atlassian.net/browse/${issueKey}`;
+        }
+        document.getElementById("r-epic").textContent     = EPIC_NAMES[epicKey] || epicKey;
+        document.getElementById("r-title").textContent    = title;
+        document.getElementById("r-assignee").textContent = assigneeId ? (ASSIGNEE_NAMES[assigneeId] || assigneeId) : "Unassigned";
+        document.getElementById("r-due").textContent      = new Date(dueDate + "T12:00:00")
+          .toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+
+        show("view-success");
+
+      } catch (err) {
+        document.getElementById("error-msg").textContent = err.message || "Unknown error";
+        show("view-error");
+      }
+    }
+  </script>
+</body>
+</html>
